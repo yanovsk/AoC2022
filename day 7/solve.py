@@ -1,37 +1,30 @@
+#part a
+lines = []
+dir_sizes = {}
 
-from collections import defaultdict
+#only add cd commands and files
+for i in open("input.txt", 'r').read().split('\n'):
+    i = i.replace("$ ", "")
+    if i[0:2] != "ls" and i[0:3] != "dir":
+        lines.append(i)
+    
+s=[]
 
+for i in range(len(lines)):
+    line = lines[i]
+    if line[0:2] == "cd" and ".." in line:
+        s.pop()
+    elif line[0:2] == "cd":
+        s.append(i)
+        dir_sizes[i] =0
+    else:
+        size = int(line.split(" ")[0])
+        for s in s:
+            dir_sizes[s] += size
 
-def get_sizes():
-    lines = open('input.txt', 'r')
-    lines = lines.splitlines()
-    # We can safely strip ls commands from the input
-    lines = [entry for entry in lines if not entry == "$ ls"]
-    print(lines)
-    filepath = []
-    sizes = defaultdict(int)
+#part b
+total_sizes = [dir_sizes[i] for i in dir_sizes if dir_sizes[i]]
+space_needed = 70000000 - total_sizes[0] 
 
-    for entry in lines:
-        if entry.startswith("$ cd"):
-            match entry:
-                case "$ cd /":
-                    filepath.clear()
-                    filepath.append("/")
-                case "$ cd ..":
-                    filepath.pop()
-                case _:
-                    dir = entry.split()[-1]
-                    filepath.append(dir)
-        else:
-            # We have a listing of a file. Add the size to the current dir and all of its parent dirs.
-            filesize = entry.split()[0]
-            if filesize.isdigit():
-                filesize = int(filesize)
-                # Iterate through every dir in the full path to the file
-                for i in range(len(filepath)):
-                    dir = '/'.join(filepath[:i+1]).replace("//", "/")
-                    sizes[dir] += filesize
-    return sizes
-
-
-print(get_sizes)
+dir_to_delete = [i for i in total_sizes if i >= 30000000-space_needed]
+print(min(dir_to_delete))
